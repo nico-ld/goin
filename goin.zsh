@@ -24,34 +24,7 @@ last_path() {
     fi
 }
 
-goin() {
-    local include_hidden=false
-    
-    if [[ -z "$1" ]]; then 
-        echo "ARGUMENT ERROR: no directory given."
-        echo "Usage: goin [option] <directory_name>"
-        return 1
-    fi
-
-    # Flag parsing
-    case "$1" in
-        -a|--all)
-            include_hidden=true
-            ;;
-        -h|--help)
-            goin_help
-            return 0
-            ;;
-        -l|--last)
-            last_path
-            return $?
-            ;;
-        -*)
-            echo "Invalid Flag"
-            return 2
-            ;;
-    esac
-
+global_research() {
     # Find directories, conditionally excluding hidden ones
     local paths
     if [[ "$include_hidden" == true ]]; then
@@ -87,5 +60,68 @@ goin() {
     else
         echo "INPUT ERROR: $choice is an invalid choice."
         return 1
+    fi
+}
+
+has_new_commit() {
+  # Current branch
+  local branch
+  branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null) || return 2
+
+  # quiet fetch
+  git fetch -q >/dev/null 2>&1 || return 2
+
+  # Compare hash of commit
+  local local_commit remote_commit
+  local_commit=$(git rev-parse HEAD 2>/dev/null) || return 2
+  remote_commit=$(git rev-parse @{u} 2>/dev/null) || return 2
+
+  [[ "$local_commit" != "$remote_commit" ]]
+}
+
+goin() {
+    local include_hidden=false
+    
+    if [[ -z "$1" ]]; then 
+        echo "ARGUMENT ERROR: no directory given."
+        echo "Usage: goin [option] <directory_name>"
+        return 1
+    fi
+
+    # Flag parsing
+    case "$1" in
+        -a|--all)
+            include_hidden=true
+            ;;
+        -h|--help)
+            goin_help
+            return 0
+            ;;
+        -l|--last)
+            last_path
+            return $?
+            ;;
+        -p|--project)
+            cd ~/cursus/"$2"
+            echo "~/cursus/$2" > ~/.goin_memory
+            return $?
+            ;;
+        -m|--mini)
+            cd ~/mini_project/"$2"
+            echo "~/mini_project/$2" > ~/.goin_memory
+            return $?
+            ;;
+        -*)
+            echo "Invalid Flag"
+            return 2
+            ;;
+        *)
+            global_research
+            return $?
+            ;;
+    esac
+    
+    if has_new_commit; then
+        echo "An update is avaible"
     fi
 }
