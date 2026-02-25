@@ -46,14 +46,6 @@ goin() {
             last_path
             return $?
             ;;
-        -w|--work)
-            cd ~/42/"$2"
-            return "$?"
-            ;;
-        -p|--project)
-            cd ~/Code/"$2"
-            return "$?"
-            ;;
         -*)
             echo "Invalid Flag"
             return 2
