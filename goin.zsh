@@ -1,4 +1,4 @@
-goin_help() {
+_goin_help() {
 	echo -e "  \033[1mUsage:\033[0m "
     echo -e "\tgoin [option] <directory_name>\n"
 	echo -e "  \033[1mDescription:\033[0m "
@@ -11,8 +11,8 @@ goin_help() {
 	echo -e "  \033[1mAuthor\033[0m : nico-ld."
 }
 
-last_path() {
-    local memory_file="$HOME/.goin_memory"
+_last_path() {
+    local memory="$HOME/.goin_memory"
     local last=""
 
     if [[ ! -f "$memory_file" ]]; then
@@ -24,23 +24,28 @@ last_path() {
     fi
 }
 
-global_research() {
+_update_config_file() {
+    sed -i "s|^LAST_PATH=\".*\"|LAST_PATH=\"$1\"|" "$config_file"
+    sed -i "s|^LAST_DIR=\".*\"|LAST_DIR=\"$2\"|" "$config_file"
+}
+
+_global_research() {
     # Find directories, conditionally excluding hidden ones
     local paths
-    if [[ "$include_hidden" == true ]]; then
-        paths=(${(f)"$(find ~ -type d -name "$1" 2>/dev/null)"})
+    if [[ "$1" == "true" ]]; then
+        paths=(${(f)"$(find ~ -type d -name "$4" 2>/dev/null)"})
     else
-        paths=(${(f)"$(find ~ -type d -not -path '*/.*' -name "$1" 2>/dev/null)"})
+        paths=(${(f)"$(find ~ -type d -not -path '*/.*' -name "$4" 2>/dev/null)"})
     fi
     
     if [[ ${#paths[@]} -eq 0 ]]; then
-        echo "No such directory named $1."
+        echo "No such directory named '$4'."
         return 1
     fi
     
     if [[ ${#paths[@]} -eq 1 ]]; then
         cd "$paths[1]"
-        echo "$paths[1]" > ~/.goin_memory
+        _update_config_file "$paths[1]" "$2"
         return 0
     fi
     
@@ -56,14 +61,15 @@ global_research() {
     
     if [[ "$choice" =~ ^[0-9]+$ && "$choice" -ge 1 && "$choice" -le ${#paths[@]} ]]; then
         cd "$paths[$choice]"
-        echo "$paths[$choice]" > ~/.goin_memory
+        _update_config_file "$paths[$choice]" "$2"
+        return 0
     else
         echo "INPUT ERROR: $choice is an invalid choice."
         return 1
     fi
 }
 
-has_new_commit() {
+_has_new_commit() {
   # Current branch
   local branch
   branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null) || return 2
@@ -79,49 +85,53 @@ has_new_commit() {
   [[ "$local_commit" != "$remote_commit" ]]
 }
 
+
 goin() {
-    local include_hidden=false
-    
+    local config_file="$HOME/.goin_config"
+
+    if [[ ! -f "$config_file" ]]; then
+        echo -e 'LAST_PATH="~"\nLAST_DIR="~"' > "$config_file"
+    fi
+
     if [[ -z "$1" ]]; then 
         echo "ARGUMENT ERROR: no directory given."
         echo "Usage: goin [option] <directory_name>"
         return 1
     fi
 
+    local current_dir=${PWD}
+    local back=$(cat "$config_file" | grep LAST_DIR | cut -d '=' -f2- | tr -d '"')
+    local last=$(cat "$config_file" | grep LAST_PATH | cut -d '=' -f2- | tr -d '"')
+
     # Flag parsing
     case "$1" in
         -a|--all)
-            include_hidden=true
+            _global_research "true" "$current_dir" "$back" "$2"
             ;;
         -h|--help)
-            goin_help
-            return 0
+            _goin_help
+            ;;
+        -b|--back)
+            cd "$back"
+            _update_config_file "$back" "$current_dir"
             ;;
         -l|--last)
-            last_path
-            return $?
-            ;;
-        -p|--project)
-            cd ~/cursus/"$2"
-            echo "~/cursus/$2" > ~/.goin_memory
-            return $?
-            ;;
-        -m|--mini)
-            cd ~/mini_project/"$2"
-            echo "~/mini_project/$2" > ~/.goin_memory
-            return $?
+            cd "$last"
+            _update_config_file "$last" "$current_dir"
             ;;
         -*)
             echo "Invalid Flag"
-            return 2
+            (exit 2)
             ;;
         *)
-            global_research
-            return $?
+            _global_research "false" "$current_dir" "$last" "$1"
             ;;
     esac
-    
-    if has_new_commit; then
-        echo "An update is avaible"
-    fi
+
+    local return_code="$?"
+
+    # if _has_new_commit; then
+    #     echo "An update is avaible"
+    # fi
+    return "$return_code"
 }
