@@ -2,7 +2,7 @@
 ## What is it ?
 This is a small function to add to you're '_.zshrc_'. It allows you to go to any directory from anywhere _(because 'cd ../../directory' is too long)_.
 
-## How to install ?
+## How to install it ?
 Currently, this command is only avaible on **Linux**.  
 You can install it manually by cloning this repository and adding in you're '_.zshrc_' file :
 ```bash
