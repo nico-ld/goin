@@ -1,26 +1,43 @@
 # goin
 ## What is it ?
-This is a little function to add at you're '_.zshrc_'. It allows you to go any directory from any directory _(because 'cd ../../directory' is too long)_.
+This is a small function to add to you're '_.zshrc_'. It allows you to go to any directory from anywhere _(because 'cd ../../directory' is too long)_.
 
 ## How to install ?
-Actually, this command is only avaible on **Linux**.  
-You can do this manually by cloning this repo and add in you're '_.zshrc_' file this line :
+Currently, this command is only avaible on **Linux**.  
+You can install it manually by cloning this repository and adding in you're '_.zshrc_' file :
 ```bash
 source ~/GIT_REPO/goin.zsh
 ```
-Or Simply run this command :
+Or simply run this command :
 ```bash
 git clone https://github.com/nico-ld/goin.git ~/.goin_function && echo "source ~/.goin_function/goin.zsh" >> .zshrc
 ```
 
 ## How to use it ?
-The command as to be run like that :
+There are three ways to use this function :
 ```bash
-goin [option] <directory_name>
+goin <directory_name>
+goin <option>
 ```
-By default this function dont search in hidden directories but you can add them to the research with _**-a**_ or _**--all**_.  
-Because I'm a bit lazy when I open my terminal, I also add _**-l**_ and _**--last**_ options to execute the last call of _goin_. But with this option, the function didn't take a directory name :
+The first way is the basic one : you just go to you're desired directory.
+
+The second way works with these options :
+- -h --help : Display the help menu
+- -l --last : Uses you're last call of function
+- -b --back : Work like _'cd -'_ but without printing the destination path
+
+## Alias
+The third way to use this function is with custom aliases. You can create your own flag to go faster, or limit the scope of the function. 
+To create your alias, use :
 ```bash
-goin -l
+goin --set-alias <name> <path>
 ```
-This call will get you in you're last directory.
+Your alias must start like a real flag (with '-'), otherwhise it will not be reconized.
+To delete it :
+```bash
+goin --unset-alias <name>
+```
+To use your alias :
+```bash
+goin <alias> [directory]
+```
