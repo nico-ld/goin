@@ -78,19 +78,26 @@ _research() {
 # _has_new_commit() -> Check for a new update
 # 
 _has_new_commit() {
-  # Current branch
-  local branch
-  branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null) || return 2
+    # Repository
+    local repo=$(grep '^REPO=' "$HOME/.goin_config" | cut -d '=' -f2- | tr -d '"')
+    if [[ ! -d ${~repo} ]]; then
+        echo "goin: The config file doesn't have access to the repositorie, please indicate the new path in '~/.goin_config'"
+        return 1
+    fi
 
-  # quiet fetch
-  git fetch -q >/dev/null 2>&1 || return 2
+    # Current branch
+    local branch
+    branch=$(git -C ${~repo} rev-parse --abbrev-ref HEAD 2>/dev/null) || return 2
 
-  # Compare hash of commit
-  local local_commit remote_commit
-  local_commit=$(git rev-parse HEAD 2>/dev/null) || return 2
-  remote_commit=$(git rev-parse @{u} 2>/dev/null) || return 2
+    # quiet fetch
+    git -C ${~repo} fetch -q >/dev/null 2>&1 || return 2
 
-  [[ "$local_commit" != "$remote_commit" ]]
+    # Compare hash of commit
+    local local_commit remote_commit
+    local_commit=$(git -C ${~repo} rev-parse HEAD 2>/dev/null) || return 2
+    remote_commit=$(git -C ${~repo} rev-parse @{u} 2>/dev/null) || return 2
+
+    [[ "$local_commit" != "$remote_commit" ]]
 }
 
 # 
@@ -105,7 +112,7 @@ _alias_management() {
         fi
 
         # testing alias name
-        if grep -q "$3" ~/.goin_config; then
+        if grep -q -- "$3" ~/.goin_config; then
             echo -e "goin: Fatal : This alias already exist"
             return 11
         fi
@@ -126,7 +133,7 @@ _alias_management() {
         " "$config_file"
     elif [[ "$1" == "unset" ]]; then
         # testing alias name
-        if ! grep -q "$3" ~/.goin_config; then
+        if ! grep -q -- "$3" ~/.goin_config; then
             echo -e "goin: No such alias named '$3'"
             return 11
         fi
@@ -167,7 +174,7 @@ goin() {
     local config_file="$HOME/.goin_config"
 
     if [[ ! -f "$config_file" ]]; then
-        echo -e 'LAST_PATH="~"\nLAST_DIR="~"\nALIAS={}' > "$config_file"
+        echo -e 'LAST_PATH="~"\nLAST_DIR="~"\nALIAS={}\nREPO="~/.goin_function"' > "$config_file"
     fi
 
     if [[ -z "$1" ]]; then 
@@ -209,6 +216,11 @@ goin() {
                 _alias_management "unset" $@
             fi
             ;;
+        --update)
+            if git -C "$HOME/.goin_function" pull -q; then
+                echo "goin: successfully updated"
+            fi
+            ;;
         -*)
             _alias_management "research" $@
             ;;
@@ -220,7 +232,7 @@ goin() {
     local return_code="$?"
 
     if _has_new_commit; then
-        echo "An update is avaible"
+        echo "goin: An update is avaible, do : goin --update to install it."
     fi
     return "$return_code"
 }
