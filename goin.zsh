@@ -148,7 +148,7 @@ goin() {
     local config_file="$HOME/.goin_config"
 
     if [[ ! -f "$config_file" ]]; then
-        echo -e 'LAST_PATH="~"\nALIAS={}\nREPO="~/.goin_function"' > "$config_file"
+        echo -e 'LAST_PATH="~"\nALIAS={}\nREPO="~/.goin_function"\nUPDATE_AVAI="false"\nLAST_FETCH="0"' > "$config_file"
     fi
 
     if [[ -z "$1" ]]; then 
@@ -191,10 +191,11 @@ goin() {
             fi
             ;;
         --update)
-            if git -C "$HOME/.goin_function" pull -q; then
-                echo "goin: successfully updated"
-            fi
-            ;;
+			if git -C "$HOME/.goin_function" pull -q; then
+				echo "goin: successfully updated"
+				sed -i 's|^UPDATE_AVAILABLE=".*"|UPDATE_AVAILABLE="false"|' "$HOME/.goin_config"
+			fi
+			;;
         -*)
             _alias_management "research" $@
             ;;
@@ -209,31 +210,44 @@ goin() {
 }
 
 # 
-# _has_new_commit() -> Check for a new update
+# _has_new_commit() -> Check for a new update (async + cooldown)
 # 
-_has_new_commit() {
-    # Repository
+_has_new_commit_bg() {
     local repo=$(grep '^REPO=' "$HOME/.goin_config" | cut -d '=' -f2- | tr -d '"')
+    local cooldown=3600
+
     if [[ ! -d ${~repo} ]]; then
-        echo "goin: The config file doesn't have access to the repositorie, please indicate the new path in '~/.goin_config'"
         return 1
     fi
 
-    # Current branch
-    local branch
-    branch=$(git -C ${~repo} rev-parse --abbrev-ref HEAD 2>/dev/null) || return 2
+    local last_fetch=$(grep '^LAST_FETCH=' "$HOME/.goin_config" | cut -d '=' -f2- | tr -d '"')
+    local now=$(date +%s)
 
-    # quiet fetch
-    git -C ${~repo} fetch -q >/dev/null 2>&1 || return 2
+    if (( now - last_fetch < cooldown )); then
+        # Cooldown not yet over, we only read the flag
+        [[ "$(grep '^UPDATE_AVAILABLE=' "$HOME/.goin_config" | cut -d '=' -f2- | tr -d '"')" == "true" ]]
+        return $?
+    fi
 
-    # Compare hash of commit
-    local local_commit remote_commit
-    local_commit=$(git -C ${~repo} rev-parse HEAD 2>/dev/null) || return 2
-    remote_commit=$(git -C ${~repo} rev-parse @{u} 2>/dev/null) || return 2
+    # Fetch in background
+    (
+        git -C ${~repo} fetch -q >/dev/null 2>&1 || exit 1
+        sed -i "s|^LAST_FETCH=\".*\"|LAST_FETCH=\"$(date +%s)\"|" "$HOME/.goin_config"
+        local local_commit=$(git -C ${~repo} rev-parse HEAD 2>/dev/null)
+        local remote_commit=$(git -C ${~repo} rev-parse @{u} 2>/dev/null)
+        if [[ "$local_commit" != "$remote_commit" ]]; then
+            sed -i 's|^UPDATE_AVAILABLE=".*"|UPDATE_AVAILABLE="true"|' "$HOME/.goin_config"
+        else
+            sed -i 's|^UPDATE_AVAILABLE=".*"|UPDATE_AVAILABLE="false"|' "$HOME/.goin_config"
+        fi
+    ) &!
 
-    [[ "$local_commit" != "$remote_commit" ]]
+    # This time, we read the flagfrom the previous fetch
+    [[ "$(grep '^UPDATE_AVAILABLE=' "$HOME/.goin_config" | cut -d '=' -f2- | tr -d '"')" == "true" ]]
 }
 
-if _has_new_commit; then
-    echo "goin: An update is avaible, do : goin --update to install it."
+if [[ -o login && -o interactive ]]; then
+    if _has_new_commit_bg; then
+        echo "goin: An update is available, run : goin --update to install it."
+    fi
 fi
