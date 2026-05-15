@@ -1,6 +1,7 @@
 # includes others files
 source "${0:A:h}/utils/_alias.zsh"
 source "${0:A:h}/utils/_help.zsh"
+source "${0:A:h}/utils/_research.zsh"
 source "${0:A:h}/utils/_update.zsh"
 
 # 
