@@ -1,21 +1,7 @@
-_goin_help() {
-	echo -e "  \033[1mUsage:\033[0m "
-    echo -e "\tgoin [option] <directory_name>"
-    echo -e "\tgoin <option>"
-    echo -e "\tgoin <alias> [directory_name]\n"
-	echo -e "  \033[1mDescription:\033[0m "
-    echo -e "\tThis command allows you to access any directory from anywhere.\n"
-	# echo -e "\tBy default, this function does not search hidden folders. You can enable this with '-all'. \n"
-	echo -e "  \033[1mOptions:\033[0m"
-    echo -e "\t-b --back : Work like '\033[3mcd -\033[0m' but without print the destination path"
-	echo -e "\t-h --help : Display informations about this command"
-    echo -e "\t-l --last : Use the same path than the last time you use the command\n"
-	echo -e "  \033[1mAlias :\033[0m"
-    echo -e "\tYou can customise this function with somes alias. This allows you to restrict the scope \n\tof the function on a given path. You can also use them to go faster in you're directory\n"
-    echo -e "\t--set-alias <name> <path> : If the alias does not exist, it is created; otherwise, its path \n\t\tis modified. The name of you're alias have to start with '-' to be reconize like a flag"
-    echo -e "\t--unset-alias <name> : Delete an alias\n"
-	echo -e "  \033[1mAuthor\033[0m : nico-ld."
-}
+# includes others files
+source "${0:A:h}/utils/_alias.zsh"
+source "${0:A:h}/utils/_help.zsh"
+source "${0:A:h}/utils/_update.zsh"
 
 # 
 # _update_config_file() -> modify .goin_config to always keep goin -l and goin -b working
@@ -25,122 +11,6 @@ _update_config_file() {
     sed -i "s|^LAST_DIR=\".*\"|LAST_DIR=\"$2\"|" "$config_file"
 }
 
-# 
-# _research() -> main part of function, find and go in right directory.
-#               If there is several directories names as same, the function ask
-#               what is the path wanted by user.
-# 
-_research() {
-    local searching_root="$1"
-    local current_dir="$2"
-    local wanted_dir="$3"
-
-    # Find directories
-    local paths
-    if [[ "$searching_root" == "~" ]]; then
-        paths=(${(f)"$(find ~ -type d -name "$wanted_dir" )"}) # 2>/dev/null
-    else
-        paths=(${(f)"$(find "$1" -type d -name "$wanted_dir" )"}) # 2>/dev/null
-    fi
-    
-    if [[ ${#paths[@]} -eq 0 ]]; then
-        echo "No such directory named '$wanted_dir'."
-        return 1
-    fi
-    
-    if [[ ${#paths[@]} -eq 1 ]]; then
-        cd "$paths[1]"
-        _update_config_file "$paths[1]" "$current_dir"
-        return 0
-    fi
-    
-    # Multiple matches found
-    echo "Multiple matches:"
-    local i
-    for i in {1..${#paths[@]}}; do
-        echo "$i - $paths[$i]"
-    done
-    
-    local choice
-    read "choice?Please select one path: "
-    
-    if [[ "$choice" =~ ^[0-9]+$ && "$choice" -ge 1 && "$choice" -le ${#paths[@]} ]]; then
-        cd "$paths[$choice]"
-        _update_config_file "$paths[$choice]" "$current_dir"
-        return 0
-    else
-        echo "INPUT ERROR: $choice is an invalid choice."
-        return 1
-    fi
-}
-
-# 
-# _alias_management() -> Work with .goin_function, can add/remove/rename/list alias
-# 
-_alias_management() {
-    if [[ "$1" == "update" ]]; then
-        # testing alias
-        if [[ ! -d "$4" ]]; then
-            echo -e "No such directory named '$4'."
-            return 1
-        fi
-
-        # testing alias name
-        if grep -q -- "$3" ~/.goin_config; then
-            echo -e "goin: Fatal : This alias already exist"
-            return 11
-        fi
-    
-        local key="$3"
-        local value="$4"
-
-        # update alias dictionnary
-        sed -i -E "
-        /^ALIAS=/ {
-            s|(\"$key\":\"[^\"]*\")|\"$key\":\"$value\"|;
-            t done;
-            s|^ALIAS=\{\}|ALIAS={\"$key\":\"$value\"}|;
-            t done;
-            s|^ALIAS=\{([^}]*)\}|ALIAS={\"$key\":\"$value\",\1}|;
-            :done
-        }
-        " "$config_file"
-    elif [[ "$1" == "unset" ]]; then
-        # testing alias name
-        if ! grep -q -- "$3" ~/.goin_config; then
-            echo -e "goin: No such alias named '$3'"
-            return 11
-        fi
-
-        local key="$3"
-        
-        sed -i -E "
-        /^ALIAS=/ {
-            s/,\"$key\":\"[^\"]*\"//;      # cas: , "key":"value"
-            s/\"$key\":\"[^\"]*\",//;      # cas: "key":"value",
-            s/\"$key\":\"[^\"]*\"//;       # cas: seul élément
-            s/\{,/\{/;                    # nettoie {,
-            s/,\}/\}/;                    # nettoie ,}
-        }
-        " "$config_file"
-    elif [[ "$1" == "research" ]]; then
-        if ! (grep "ALIAS" "$config_file" | grep -q -- "\"$2\":"); then
-            echo -e "goin: Unkwnow flag or alias"
-            return 12
-        fi
-        
-        local target=$(grep '^ALIAS=' "$config_file" | cut -d '=' -f2- | grep -o "\"$2\":\"[^\"]*\"" | cut -d ':' -f2 | tr -d '"')
-        
-        local current_dir=${PWD}
-        cd "$target"
-        if [[ ! -z "$3" ]]; then
-            _research "." "$current_dir" "$3"
-        else
-            _update_config_file "$target" "$current_dir"
-        fi
-    fi
-}
-
 #
 # goin() -> main function. Parse all flags and call good function
 #
@@ -148,7 +18,7 @@ goin() {
     local config_file="$HOME/.goin_config"
 
     if [[ ! -f "$config_file" ]]; then
-        echo -e 'LAST_PATH="~"\nALIAS={}\nREPO="~/.goin_function"\nUPDATE_AVAI="false"\nLAST_FETCH="0"' > "$config_file"
+        echo -e 'LAST_PATH="~"\nALIAS={}\nREPO="~/.goin_function"\nUPDATE_AVAI="false"\nLAST_FETCH="0"\n' > "$config_file"
     fi
 
     if [[ -z "$1" ]]; then 
@@ -191,10 +61,7 @@ goin() {
             fi
             ;;
         --update)
-			if git -C "$HOME/.goin_function" pull -q; then
-				echo "goin: successfully updated"
-				sed -i 's|^UPDATE_AVAILABLE=".*"|UPDATE_AVAILABLE="false"|' "$HOME/.goin_config"
-			fi
+			_update
 			;;
         -*)
             _alias_management "research" $@
@@ -208,46 +75,3 @@ goin() {
 
     return "$return_code"
 }
-
-# 
-# _has_new_commit() -> Check for a new update (async + cooldown)
-# 
-_has_new_commit_bg() {
-    local repo=$(grep '^REPO=' "$HOME/.goin_config" | cut -d '=' -f2- | tr -d '"')
-    local cooldown=3600
-
-    if [[ ! -d ${~repo} ]]; then
-        return 1
-    fi
-
-    local last_fetch=$(grep '^LAST_FETCH=' "$HOME/.goin_config" | cut -d '=' -f2- | tr -d '"')
-    local now=$(date +%s)
-
-    if (( now - last_fetch < cooldown )); then
-        # Cooldown not yet over, we only read the flag
-        [[ "$(grep '^UPDATE_AVAILABLE=' "$HOME/.goin_config" | cut -d '=' -f2- | tr -d '"')" == "true" ]]
-        return $?
-    fi
-
-    # Fetch in background
-    (
-        git -C ${~repo} fetch -q >/dev/null 2>&1 || exit 1
-        sed -i "s|^LAST_FETCH=\".*\"|LAST_FETCH=\"$(date +%s)\"|" "$HOME/.goin_config"
-        local local_commit=$(git -C ${~repo} rev-parse HEAD 2>/dev/null)
-        local remote_commit=$(git -C ${~repo} rev-parse @{u} 2>/dev/null)
-        if [[ "$local_commit" != "$remote_commit" ]]; then
-            sed -i 's|^UPDATE_AVAILABLE=".*"|UPDATE_AVAILABLE="true"|' "$HOME/.goin_config"
-        else
-            sed -i 's|^UPDATE_AVAILABLE=".*"|UPDATE_AVAILABLE="false"|' "$HOME/.goin_config"
-        fi
-    ) &!
-
-    # This time, we read the flagfrom the previous fetch
-    [[ "$(grep '^UPDATE_AVAILABLE=' "$HOME/.goin_config" | cut -d '=' -f2- | tr -d '"')" == "true" ]]
-}
-
-if [[ -o login && -o interactive ]]; then
-    if _has_new_commit_bg; then
-        echo "goin: An update is available, run : goin --update to install it."
-    fi
-fi
