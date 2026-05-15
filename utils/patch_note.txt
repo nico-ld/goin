@@ -1,0 +1,6 @@
+goin : V1.2.0
+
+- Refactor update management
+- Refactor flag management -> multiple falgs allowed
+- Adding a new flag : --list-alias
+
