@@ -13,8 +13,6 @@ Or simply run this command :
 git clone https://github.com/nico-ld/goin.git ~/.goin_function && echo "source ~/.goin_function/goin.zsh" >> ~/.zshrc && source ~/.zshrc
 ```
 
-⚠️ By default, the function will generate a configuration file in your **/home/user/** directory _(.goin_config)_. For certain reasons, this file must know the location of the repository. Therefore, if you clone manually or move the repository, remember to **specify the new path in the configuration file.**
-
 ## How to use it ?
 There are three ways to use this function :
 ```bash

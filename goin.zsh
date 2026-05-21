@@ -12,7 +12,7 @@ typeset -g INFO="\033[34mINFO\033[0m"
 typeset -g WARNING="\033[33mWARNING\033[0m"
 typeset -g SUCCESS="\033[32mSUCCESS\033[0m"
 
-# at the top of goin.zsh, outside any function
+# goin dir emplacement
 typeset -g GOIN_DIR="${${(%):-%x}:A:h}"
 
 # 
@@ -21,6 +21,33 @@ typeset -g GOIN_DIR="${${(%):-%x}:A:h}"
 _update_config_file() {
     sed -i "s|^LAST_PATH=\".*\"|LAST_PATH=\"$1\"|" "$config_file"
     sed -i "s|^LAST_DIR=\".*\"|LAST_DIR=\"$2\"|" "$config_file"
+}
+
+_config_file_check() {
+	local alias_save="none"
+
+	if grep -q "ALIAS" "$config_file"; then
+		alias_save=$(grep "ALIAS" "$config_file")
+	else
+		echo "ALIAS={}" >> $config_file
+	fi
+	if ! grep -q "UPDATE_AVAILABLE" "$config_file" || ! grep -q "LAST_FETCH" "$config_file"; then
+		echo "goin: $ERROR: Missing important parameter in configuration file"
+		echo "goin: $INFO: configuration file will be rewrite"
+		echo "goin: $INFO: your aliases have beed saved"
+        echo 'LAST_PATH="~"' > "$config_file"
+
+		if [[ "$alias_save" == "none" ]]; then
+			echo "ALIAS={}" >> "$config_file"
+		else
+			echo "$alias_save" >> "$config_file"
+		fi
+
+		echo 'UPDATE_AVAILABLE="false"' >> "$config_file"
+        echo 'LAST_FETCH="0"' >> "$config_file"
+        echo 'LS_FLAG="false"' >> "$config_file"		
+		_update "silent"
+	fi
 }
 
 # 
@@ -39,8 +66,10 @@ goin() {
     local config_file="$HOME/.goin_config"
 
     if [[ ! -f "$config_file" ]]; then
-        echo -e 'LAST_PATH="~"\nALIAS={}\nREPO="~/.goin_function"\nUPDATE_AVAI="false"\nLAST_FETCH="0"\nLS_FLAG="false"' > "$config_file"
+        echo -e 'LAST_PATH="~"\nALIAS={}\nUPDATE_AVAILABLE="false"\nLAST_FETCH="0"\nLS_FLAG="false"' > "$config_file"
     fi
+
+	_config_file_check
 
     if [[ -z "$1" ]]; then 
         echo "goin: $ERROR: Missing arguments"

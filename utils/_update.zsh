@@ -4,19 +4,21 @@
 # _update() -> If an update is avaible -> git pull, otherwise just print a message.
 #
 _update() {
-	if ! grep -q "UPDATE_FLAG" "$HOME/.goin_config"; then
-		echo -e "goin: $WARNING: UPDATE_FLAG not set in config file."
-		echo "goin: $INFO adding UPDATE_FLAG in config file..."
-		echo -e '\nUPDATE_FLAG="false"' >> "$HOME/.goin_config"
+	if ! grep -q "UPDATE_AVAILABLE" "$HOME/.goin_config"; then
+		echo -e "goin: $WARNING: UPDATE_AVAILABLE not set in config file."
+		echo "goin: $INFO adding UPDATE_AVAILABLE in config file..."
+		echo -e '\UPDATE_AVAILABLE="false"' >> "$HOME/.goin_config"
 		return 1
-	elif grep -q 'UPDATE_FLAG="true"' "$HOME/.goin_config"; then
+	elif grep -q 'UPDATE_AVAILABLE="true"' "$HOME/.goin_config"; then
 		if git -C "${0:A:h}" pull -q; then
 			echo "goin: $SUCCESS: successfully updated"
 			cat "${0:A:h}/patch_note.txt"
 			sed -i 's|^UPDATE_AVAILABLE=".*"|UPDATE_AVAILABLE="false"|' "$HOME/.goin_config"
 		fi
 	else
-		echo "goin: $INFO: Already up to date."
+		if [[ -z "$1" ]]; then 
+			echo "goin: $INFO: Already up to date."
+		fi
 	fi
 	return 0
 }
