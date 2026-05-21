@@ -5,18 +5,18 @@
 #
 _update() {
 	if ! grep -q "UPDATE_FLAG" "$HOME/.goin_config"; then
-		echo -e "goin: \033[33mWARNING:\033[0m UPDATE_FLAG not set in config file."
-		echo "goin: \033[34mINFO:\033[0m adding UPDATE_FLAG in config file..."
+		echo -e "goin: $WARNING: UPDATE_FLAG not set in config file."
+		echo "goin: $INFO adding UPDATE_FLAG in config file..."
 		echo -e '\nUPDATE_FLAG="false"' >> "$HOME/.goin_config"
 		return 1
 	elif grep -q 'UPDATE_FLAG="true"' "$HOME/.goin_config"; then
 		if git -C "${0:A:h}" pull -q; then
-			echo "goin: successfully updated"
+			echo "goin: $SUCCESS: successfully updated"
 			cat "${0:A:h}/patch_note.txt"
 			sed -i 's|^UPDATE_AVAILABLE=".*"|UPDATE_AVAILABLE="false"|' "$HOME/.goin_config"
 		fi
 	else
-		echo "goin: \033[34mINFO:\033[0m Already up to date."
+		echo "goin: $INFO: Already up to date."
 	fi
 	return 0
 }
@@ -60,7 +60,7 @@ _has_new_commit_bg() {
 
 if [[ -o login && -o interactive ]]; then
     if _has_new_commit_bg; then
-        echo "goin: An update is available, run : goin --update to install it."
+        echo "goin: $INFO: An update is available, run : goin --update to install it."
 		sed -i 's|^UPDATE_AVAILABLE=".*"|UPDATE_AVAILABLE="true"|' "$HOME/.goin_config"
     fi
 fi

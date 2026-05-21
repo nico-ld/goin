@@ -19,7 +19,7 @@ _research() {
     fi
     
     if [[ ${#paths[@]} -eq 0 ]]; then
-        echo "No such directory named '$wanted_dir'."
+        echo "goin: $ERROR: No such directory named '$wanted_dir'."
         return 1
     fi
     
@@ -44,7 +44,7 @@ _research() {
         _update_config_file "$paths[$choice]" "$current_dir"
         return 0
     else
-        echo "INPUT ERROR: $choice is an invalid choice."
+        echo "goin: $ERROR: $choice is an invalid choice."
         return 1
     fi
 }

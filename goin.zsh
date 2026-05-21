@@ -6,6 +6,12 @@ source "${0:A:h}/utils/_help.zsh"
 source "${0:A:h}/utils/_research.zsh"
 source "${0:A:h}/utils/_update.zsh"
 
+# define global var for output message
+typeset -g ERROR="\033[31mERROR\033[0m"
+typeset -g INFO="\033[34mINFO\033[0m"
+typeset -g WARNING="\033[33mWARNING\033[0m"
+typeset -g SUCCESS="\033[32mSUCCESS\033[0m"
+
 # 
 # _update_config_file() -> modify .goin_config to always keep goin -l and goin -b working
 # 
@@ -34,7 +40,7 @@ goin() {
     fi
 
     if [[ -z "$1" ]]; then 
-        echo "ARGUMENT ERROR: no directory given."
+        echo "goin: $ERROR: Missing arguments"
         echo "Usage: goin [option] <directory_name>"
         return 3
     fi
@@ -52,7 +58,7 @@ goin() {
 		case "$arg" in
 			--*)
 				if [[ ! count -eq 1 ]]; then
-					echo "goin: ${arg#} have to be used alone"
+					echo "goin: $ERROR: ${arg#} have to be used alone"
 					return 1
 				fi
 				case "$arg" in
@@ -65,7 +71,8 @@ goin() {
 						;;
 					--set-alias)
 						if [[ -z "$2" || -z "$3" ]]; then
-							echo -e "goin: missing arguments\nUsage: goin --set-alias <name> <path/from/home>"
+							echo "goin: $ERROR: missing arguments"
+							echo "Usage: goin --set-alias <name> <path/from/home>"
 							return 1
 						else
 							_alias_management "update" $@
@@ -73,7 +80,8 @@ goin() {
 						;;
 					--unset-alias)
 						if [[ -z "$2" ]]; then
-							echo -e "goin: missing arguments\nUsage: goin --unset-alias <name>"
+							echo "goin: $ERROR: missing arguments"
+							echo "Usage: goin --unset-alias <name>"
 							return 1
 						else
 							_alias_management "unset" $@
@@ -100,9 +108,9 @@ goin() {
 						_update
 						;;
 					--version)
-						echo "goin: \033[34mINFO:\033[0m Version \033[1m2.1.0\033[0m"
+						echo "goin: $INFO: Version \033[1m2.1.0\033[0m"
 						;;
-					--*) echo "Unknow option" ;;
+					--*) echo "goin: $ERROR: $arg: Unknow option" ;;
 				esac
 				return "$?"
 				;;
@@ -129,7 +137,7 @@ goin() {
 							return 0
 							;;
 						*) 
-							echo "Unknown flag or alias: -$flag"
+							echo "goin: $ERROR: Unknown flag or alias: '$flag'"
 							;;
 					esac
 					(( i++ ))
