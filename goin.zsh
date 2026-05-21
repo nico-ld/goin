@@ -33,6 +33,7 @@ _config_file_check() {
 	fi
 	if ! grep -q "LAST_PATH" "$config_file"; then
 		echo 'LAST_PATH="~"' >> "$config_file"
+	fi
 	if ! grep -q "UPDATE_AVAILABLE" "$config_file" || ! grep -q "LAST_FETCH" "$config_file"; then
 		echo "goin: $ERROR: Missing important parameter in configuration file"
 		echo "goin: $INFO: configuration file will be rewrite"
@@ -142,7 +143,7 @@ goin() {
 						_update
 						;;
 					--version)
-						echo "goin: $INFO: Version \033[1m2.1.1\033[0m"
+						echo "goin: $INFO: Version \033[1m2.1.2\033[0m"
 						;;
 					--*) echo "goin: $ERROR: $arg: Unknow option" ;;
 				esac
