@@ -1,3 +1,5 @@
+#!/bin/zsh
+
 # includes others files
 source "${0:A:h}/utils/_alias.zsh"
 source "${0:A:h}/utils/_help.zsh"
@@ -32,45 +34,67 @@ goin() {
     local back=$(env | grep OLDPWD | cut -d '=' -f2-)
     local last=$(cat "$config_file" | grep LAST_PATH | cut -d '=' -f2- | tr -d '"')
 
-    # Flag parsing
-    case "$1" in
-        -h|--help)
-            _goin_help
-            ;;
-        -b|--back)
-            cd "$back"
-            _update_config_file "$back" "$current_dir"
-            ;;
-        -l|--last)
-            cd "$last"
-            _update_config_file "$last" "$current_dir"
-            ;;
-        --set-alias)
-            if [[ -z "$2" || -z "$3" ]]; then
-                echo -e "goin: missing arguments\nUsage: goin --set-alias <name> <path/from/home>"
-                (exit 1)
-            else
-                _alias_management "update" $@
-            fi
-            ;;
-        --unset-alias)
-            if [[ -z "$2" ]]; then
-                echo -e "goin: missing arguments\nUsage: goin --unset-alias <name>"
-                (exit 1)
-            else
-                _alias_management "unset" $@
-            fi
-            ;;
-        --update)
-			_update
-			;;
-        -*)
-            _alias_management "research" $@
-            ;;
-        *)
-            _research "~" "$current_dir" "$1"
-            ;;
-    esac
+	# Flag parsing
+    local arg
+	local flag
+	local count
+
+	for arg in "$@"; do 
+		(( count++ ))
+		case "$arg" in
+			--*)
+				if [[ ! count -eq 1 ]]; then
+					echo "goin: ${arg#} have to be used alone"
+					return 1
+				fi
+				case "$arg" in
+					--help) _goin_help ;;
+					--back) 
+						cd "$back"
+						echo "going back option" 
+						;;
+					--set-alias) echo "set/modify option" ;;
+					--unset-alias) echo "remove alias option" ;;
+					--update) echo "update option" ;;
+					--*) echo "Unknow option" ;;
+				esac
+				return "$?"
+				;;
+			-*)
+				# Short option(s): strip the leading '-', then iterate chars
+				local opts="${arg#-}"
+				local i=1
+				if (grep "ALIAS" "$HOME/.goin_config" | grep -q -- "\"$arg\":"); then
+					_alias_management "research" "$arg"
+					return 0
+				fi
+				while [[ $i -le ${#opts} ]]; do
+					flag="${opts[$i]}"
+					case "$flag" in
+						h) 
+							_goin_help
+							return 0
+							;;
+						l) 
+							echo "Flag: ls"
+							;;
+						b) 
+							cd "back"
+							_update_config_file "$back" "$current_dir"
+							return 0
+							;;
+						*) 
+							echo "Unknown flag or alias: -$flag"
+							;;
+					esac
+					(( i++ ))
+				done
+				;;
+			*)
+				_research "~" "$current_dir" "$1"
+				;;
+			esac
+	done
 
     local return_code="$?"
 

@@ -1,3 +1,5 @@
+#!/bin/zsh
+
 #
 # _update() -> If an update is avaible -> git pull, otherwise just print a message.
 #

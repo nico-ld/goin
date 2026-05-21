@@ -1,3 +1,5 @@
+#!/bin/zsh
+
 _goin_help() {
 	echo -e "  \033[1mUsage:\033[0m "
     echo -e "\tgoin [option] <directory_name>"

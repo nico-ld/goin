@@ -1,3 +1,5 @@
+#!/bin/zsh
+
 # 
 # _alias_management() -> Work with .goin_function, can add/remove/rename/list alias
 # 
@@ -57,10 +59,6 @@ _alias_management() {
         
         local current_dir=${PWD}
         cd "$target"
-        if [[ ! -z "$3" ]]; then
-            _research "." "$current_dir" "$3"
-        else
-            _update_config_file "$target" "$current_dir"
-        fi
+        _update_config_file "$target" "$current_dir"
     fi
 }

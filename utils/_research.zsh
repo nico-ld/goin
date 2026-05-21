@@ -1,3 +1,5 @@
+#!/bin/zsh
+
 # 
 # _research() -> main part of function, find and go in right directory.
 #               If there is several directories names as same, the function ask
