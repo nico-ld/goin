@@ -1,6 +1,7 @@
-goin : V1.2.0
+goin : V2.1.0
 
 - Refactor update management
 - Refactor flag management -> multiple flags allowed
+- Adding new configurations options : --set-ls and --unset-ls
 - Adding a new flag : --list-alias
 

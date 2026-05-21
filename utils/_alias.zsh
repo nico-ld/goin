@@ -1,5 +1,28 @@
 #!/bin/zsh
 
+_list_alias() {
+    # Extract the ALIAS line
+    local alias_line
+    alias_line=$(grep '^ALIAS=' "$config_file" | head -1)
+
+    if [[ -z "$alias_line" ]]; then
+        echo "goin: \033[34mINFO:\033[0m You have no alias."
+        return 0
+    fi
+
+    # Strip ALIAS={ ... }
+    local inner="${alias_line#ALIAS=\{}"
+    inner="${inner%\}}"
+
+    # Split on ',' and print each key:value pair
+    echo "$inner" | tr ',' '\n' | while IFS=':' read -r key val; do
+        # Strip surrounding quotes
+        key="${key//\"/}"
+        val="${val//\"/}"
+        printf "%-10s %s\n" "$key" "$val"
+    done
+}
+
 # 
 # _alias_management() -> Work with .goin_function, can add/remove/rename/list alias
 # 

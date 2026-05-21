@@ -14,6 +14,9 @@ _update_config_file() {
     sed -i "s|^LAST_DIR=\".*\"|LAST_DIR=\"$2\"|" "$config_file"
 }
 
+# 
+# _check_ls_flag() -> Check the flag ls in config file, and execute ls if necessary
+# 
 _check_ls_flag() {
 	if grep -q 'LS_FLAG="true"' "$HOME/.goin_config"; then
 		ls
@@ -83,6 +86,9 @@ goin() {
 							sed -i 's|^LS_FLAG=".*"|LS_FLAG="true"|' "$config_file"
 						fi
 						;;
+					--list-alias)
+						_list_alias
+						;;
 					--unset-ls)
 						if ! grep -q "LS_FLAG" "$config_file"; then
 							echo 'LS_FLAG="false"' >> "$config_file"
@@ -92,6 +98,9 @@ goin() {
 						;;
 					--update)
 						_update
+						;;
+					--version)
+						echo "goin: \033[34mINFO:\033[0m Version \033[1m2.1.0\033[0m"
 						;;
 					--*) echo "Unknow option" ;;
 				esac
