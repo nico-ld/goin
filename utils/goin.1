@@ -1,0 +1,90 @@
+.TH GOIN 1 "2026" "goin" "User Commands"
+
+.SH NAME
+goin \- access directories quickly from anywhere
+
+.SH SYNOPSIS
+.B goin
+[\fIOPTION\fR] <directory_name>
+
+.B goin
+<alias>
+
+.SH DESCRIPTION
+\fBgoin\fR allows you to access directories quickly from anywhere in the terminal.
+
+It also supports aliases to restrict navigation scope or speed up access
+to commonly used paths.
+
+.SH OPTIONS
+
+.TP
+.BR -b ", " --back
+Work like
+.B cd -
+but without printing the destination path.
+
+.TP
+.BR -h ", " --help
+Display information about this command.
+
+.TP
+.B --set-ls
+Enable automatic execution of
+.B ls
+when entering the destination directory.
+
+.TP
+.B --unset-ls
+Disable the automatic
+.B ls
+execution flag.
+
+.SH ALIAS MANAGEMENT
+
+.TP
+.BI --set-alias " <name> <path>"
+Create a new alias if it does not exist, or modify its path otherwise.
+
+Alias names must begin with
+.B -
+to be recognized as flags.
+
+.TP
+.BI --unset-alias " <name>"
+Delete an alias.
+
+.TP
+.B --list-alias
+List all configured aliases.
+
+.SH EXAMPLES
+
+.TP
+Go to a directory:
+.B goin projects
+
+.TP
+Go back to previous directory:
+.B goin --back
+
+.TP
+Create an alias:
+.B goin --set-alias -work ~/Documents/work
+
+.TP
+Use an alias:
+.B goin -work
+
+.SH FILES
+Configuration files used by
+.B goin
+depend on the installation setup.
+
+.SH AUTHOR
+nico-ld
+
+.SH SEE ALSO
+.BR cd (1),
+.BR ls (1),
+.BR bash (1)

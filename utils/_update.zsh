@@ -25,7 +25,7 @@ _update() {
 # _has_new_commit() -> Check for a new update (async + cooldown)
 # 
 _has_new_commit_bg() {
-    local repo="${0:A:h}"
+	local repo="$GOIN_DIR"
     local cooldown=3600
 
     if [[ ! -d ${~repo} ]]; then

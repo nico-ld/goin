@@ -13,7 +13,7 @@ Or simply run this command :
 git clone https://github.com/nico-ld/goin.git ~/.goin_function && echo "source ~/.goin_function/goin.zsh" >> ~/.zshrc && source ~/.zshrc
 ```
 
-⚠️ By default, the function will generate a configuration file in your __/home/user/__ directory _(.goin_config)_. For certain reasons, this file must know the location of the repository. Therefore, if you clone manually or move the repository, remember to __specify the new path in the configuration file.__
+⚠️ By default, the function will generate a configuration file in your **/home/user/** directory _(.goin_config)_. For certain reasons, this file must know the location of the repository. Therefore, if you clone manually or move the repository, remember to **specify the new path in the configuration file.**
 
 ## How to use it ?
 There are three ways to use this function :
@@ -25,7 +25,6 @@ The first way is the basic one : you just go to you're desired directory.
 
 The second way works with these options :
 - -h --help : Display the help menu
-- -l --last : Uses you're last call of function
 - -b --back : Work like _'cd -'_ but without printing the destination path
 
 ## Alias
@@ -41,5 +40,9 @@ goin --unset-alias <name>
 ```
 To use your alias :
 ```bash
-goin <alias> [directory]
+goin <alias>
+```
+To list them :
+```bash
+goin --list-alias
 ```

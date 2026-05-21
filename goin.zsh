@@ -12,6 +12,9 @@ typeset -g INFO="\033[34mINFO\033[0m"
 typeset -g WARNING="\033[33mWARNING\033[0m"
 typeset -g SUCCESS="\033[32mSUCCESS\033[0m"
 
+# at the top of goin.zsh, outside any function
+typeset -g GOIN_DIR="${${(%):-%x}:A:h}"
+
 # 
 # _update_config_file() -> modify .goin_config to always keep goin -l and goin -b working
 # 
@@ -62,8 +65,8 @@ goin() {
 					return 1
 				fi
 				case "$arg" in
-					--help) 
-						_goin_help 
+					--help)
+						man -l "$GOIN_DIR/utils/goin.1"
 						;;
 					--back) 
 						cd "$back"
