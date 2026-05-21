@@ -14,6 +14,12 @@ _update_config_file() {
     sed -i "s|^LAST_DIR=\".*\"|LAST_DIR=\"$2\"|" "$config_file"
 }
 
+_check_ls_flag() {
+	if grep -q 'LS_FLAG="true"' "$HOME/.goin_config"; then
+		ls
+	fi
+}
+
 #
 # goin() -> main function. Parse all flags and call good function
 #
@@ -21,7 +27,7 @@ goin() {
     local config_file="$HOME/.goin_config"
 
     if [[ ! -f "$config_file" ]]; then
-        echo -e 'LAST_PATH="~"\nALIAS={}\nREPO="~/.goin_function"\nUPDATE_AVAI="false"\nLAST_FETCH="0"\n' > "$config_file"
+        echo -e 'LAST_PATH="~"\nALIAS={}\nREPO="~/.goin_function"\nUPDATE_AVAI="false"\nLAST_FETCH="0"\nLS_FLAG="false"' > "$config_file"
     fi
 
     if [[ -z "$1" ]]; then 
@@ -32,7 +38,6 @@ goin() {
 
     local current_dir=${PWD}
     local back=$(env | grep OLDPWD | cut -d '=' -f2-)
-    local last=$(cat "$config_file" | grep LAST_PATH | cut -d '=' -f2- | tr -d '"')
 
 	# Flag parsing
     local arg
@@ -48,14 +53,46 @@ goin() {
 					return 1
 				fi
 				case "$arg" in
-					--help) _goin_help ;;
+					--help) 
+						_goin_help 
+						;;
 					--back) 
 						cd "$back"
-						echo "going back option" 
+						_update_config_file "$back" "$current_dir"
 						;;
-					--set-alias) echo "set/modify option" ;;
-					--unset-alias) echo "remove alias option" ;;
-					--update) echo "update option" ;;
+					--set-alias)
+						if [[ -z "$2" || -z "$3" ]]; then
+							echo -e "goin: missing arguments\nUsage: goin --set-alias <name> <path/from/home>"
+							return 1
+						else
+							_alias_management "update" $@
+						fi
+						;;
+					--unset-alias)
+						if [[ -z "$2" ]]; then
+							echo -e "goin: missing arguments\nUsage: goin --unset-alias <name>"
+							return 1
+						else
+							_alias_management "unset" $@
+						fi
+						;;
+					--set-ls)
+						if ! grep -q "LS_FLAG" "$config_file"; then
+							echo 'LS_FLAG="true"' >> "$config_file"
+						else
+							sed -i 's|^LS_FLAG=".*"|LS_FLAG="true"|' "$config_file"
+						fi
+						;;
+					--unset-ls)
+						if ! grep -q "LS_FLAG" "$config_file"; then
+							echo 'LS_FLAG="false"' >> "$config_file"
+						else
+							sed -i 's|^LS_FLAG=".*"|LS_FLAG="false"|' "$config_file"
+						fi
+						;;
+					--update)
+						_update
+						;;
 					--*) echo "Unknow option" ;;
 				esac
 				return "$?"
@@ -64,8 +101,9 @@ goin() {
 				# Short option(s): strip the leading '-', then iterate chars
 				local opts="${arg#-}"
 				local i=1
-				if (grep "ALIAS" "$HOME/.goin_config" | grep -q -- "\"$arg\":"); then
+				if (grep "ALIAS" "$config_file" | grep -q -- "\"$arg\":"); then
 					_alias_management "research" "$arg"
+					_check_ls_flag
 					return 0
 				fi
 				while [[ $i -le ${#opts} ]]; do
@@ -75,11 +113,9 @@ goin() {
 							_goin_help
 							return 0
 							;;
-						l) 
-							echo "Flag: ls"
-							;;
 						b) 
-							cd "back"
+							cd "$back"
+							_check_ls_flag
 							_update_config_file "$back" "$current_dir"
 							return 0
 							;;
@@ -92,6 +128,9 @@ goin() {
 				;;
 			*)
 				_research "~" "$current_dir" "$1"
+				if [[ "$?" -eq "0" ]]; then
+					_check_ls_flag
+				fi
 				;;
 			esac
 	done
