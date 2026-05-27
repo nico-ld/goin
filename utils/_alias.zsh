@@ -101,7 +101,11 @@ _alias_management() {
         local target=$(grep '^ALIAS=' "$config_file" | cut -d '=' -f2- | grep -o "\"$2\":\"[^\"]*\"" | cut -d ':' -f2 | tr -d '"')
         
         local current_dir=${PWD}
-        cd "$target"
-        _update_config_file "$target" "$current_dir"
-    fi
+		if [[ -z "$4" ]]; then
+	        cd "$target"
+    	    _update_config_file "$target" "$current_dir"
+		else
+			_research "$target" "$current_dir" "$4"
+		fi
+	fi
 }

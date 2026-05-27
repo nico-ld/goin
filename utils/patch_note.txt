@@ -2,3 +2,4 @@ goin : V2.2.0
 
 - Parsing alias reworked
 - New option : -a -> include hidden files
+- New possibility : goin path/to/dir

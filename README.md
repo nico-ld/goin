@@ -1,10 +1,10 @@
 # goin
 ## What is it ?
-This is a small function to add to you're '_.zshrc_'. It allows you to go to any directory from anywhere _(because 'cd ../../directory' is too long)_.
+This is a small function to add to your '_.zshrc_'. It allows you to go to any directory from anywhere _(because `cd ../../directory` is too long)_.
 
 ## How to install it ?
 Currently, this command is only avaible on **Linux**.  
-You can install it manually by cloning this repository and adding in you're '_.zshrc_' file :
+You can install it manually by cloning this repository and adding in your '_.zshrc_' file :
 ```bash
 source ~/GIT_REPO/goin.zsh
 ```
@@ -19,7 +19,7 @@ There are three ways to use this function :
 goin <directory_name>
 goin <option>
 ```
-The first way is the basic one : you just go to you're desired directory.
+The first way is the basic one : you just go to your desired directory.
 
 The second way works with these options :
 - -h --help : Display the help menu
