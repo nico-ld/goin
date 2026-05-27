@@ -13,11 +13,17 @@ _research() {
     # Find directories
     local paths
     if [[ "$searching_root" == "~" ]]; then
-        paths=(${(f)"$(find ~ -type d -name "$wanted_dir" )"}) # 2>/dev/null
+        local root="$HOME"
     else
-        paths=(${(f)"$(find "$1" -type d -name "$wanted_dir" )"}) # 2>/dev/null
+		local root="$searching_root"
     fi
-    
+
+	if grep -q 'HIDDEN_FLAG="true"' "$config_file"; then
+    	paths=(${(f)"$(find "$root" -type d -name "$wanted_dir" )"})
+	else
+    	paths=(${(f)"$(find "$root" -type d -not -path '*/.*' -name "$wanted_dir" )"})
+	fi
+
     if [[ ${#paths[@]} -eq 0 ]]; then
         echo "goin: $ERROR: No such directory named '$wanted_dir'."
         return 1

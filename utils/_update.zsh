@@ -11,9 +11,16 @@ _update() {
 		return 1
 	elif grep -q 'UPDATE_AVAILABLE="true"' "$HOME/.goin_config"; then
 		if git -C "${0:A:h}" pull -q; then
-			echo "goin: $SUCCESS: successfully updated"
-			cat "${0:A:h}/patch_note.txt"
-			sed -i 's|^UPDATE_AVAILABLE=".*"|UPDATE_AVAILABLE="false"|' "$HOME/.goin_config"
+			source ~/.zshrc
+			if [ $? == 0]; then
+				echo "goin: $SUCCESS: successfully updated"
+				cat "${0:A:h}/patch_note.txt"
+				sed -i 's|^UPDATE_AVAILABLE=".*"|UPDATE_AVAILABLE="false"|' "$HOME/.goin_config"
+			else
+				echo -e "$ERROR: A problem occurs whil trying to refresh ~/.zshrc"
+				echo -e "$WARNING: Goin updated but function maybe not refreshed"
+				echo -e "$WARNING: Restart your terminal or try again to refresh ~/.zshrc"
+			fi
 		fi
 	else
 		if [[ -z "$1" ]]; then 
@@ -62,7 +69,7 @@ _has_new_commit_bg() {
 
 if [[ -o login && -o interactive ]]; then
     if _has_new_commit_bg; then
-        echo "goin: $INFO: An update is available, run : goin --update to install it."
+        echo "goin: $INFO: An update is available, run : goin --update to install it"
 		sed -i 's|^UPDATE_AVAILABLE=".*"|UPDATE_AVAILABLE="true"|' "$HOME/.goin_config"
     fi
 fi

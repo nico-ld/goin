@@ -23,6 +23,9 @@ _update_config_file() {
     sed -i "s|^LAST_DIR=\".*\"|LAST_DIR=\"$2\"|" "$config_file"
 }
 
+#
+# _config_file_check() -> Check the presence of important line of config_file
+#
 _config_file_check() {
 	local alias_save="none"
 
@@ -57,8 +60,17 @@ _config_file_check() {
 # _check_ls_flag() -> Check the flag ls in config file, and execute ls if necessary
 # 
 _check_ls_flag() {
-	if grep -q 'LS_FLAG="true"' "$HOME/.goin_config"; then
+	if grep -q 'LS_FLAG="true"' "$config_file"; then
 		ls
+	fi
+}
+
+_reset_temp_flag() {
+	if grep -q 'CREATE_FLAG="true"' "$config_file"; then
+		sed -i 's|^CREATE_FLAG=".*"|CREATE_FLAG="false"|' "$config_file"
+	fi
+	if grep -q 'HIDDEN_FLAG="true"' "$config_file"; then
+		sed -i 's|^HIDDEN_FLAG=".*"|HIDDEN_FLAG="false"|' "$config_file"
 	fi
 }
 
@@ -69,8 +81,9 @@ goin() {
     local config_file="$HOME/.goin_config"
 
     if [[ ! -f "$config_file" ]]; then
-        echo -e 'LAST_PATH="~"\nALIAS={}\nUPDATE_AVAILABLE="false"\nLAST_FETCH="0"\nLS_FLAG="false"' > "$config_file"
-    fi
+        echo -e 'LAST_PATH="~"\nALIAS={}\nUPDATE_AVAILABLE="false"\nLAST_FETCH="0"' > "$config_file"
+		echo -e 'LS_FLAG="flag"\nCREATE_FLAG="false"\nHIDDEN_FLAG="false"' >> "$config_file"
+	fi
 
 	_config_file_check
 
@@ -94,6 +107,7 @@ goin() {
 			--*)
 				if [[ ! count -eq 1 ]]; then
 					echo "goin: $ERROR: ${arg#} have to be used alone"
+					_reset_temp_flag
 					return 1
 				fi
 				case "$arg" in
@@ -122,15 +136,15 @@ goin() {
 							_alias_management "unset" $@
 						fi
 						;;
+					--list-alias)
+						_list_alias
+						;;
 					--set-ls)
 						if ! grep -q "LS_FLAG" "$config_file"; then
 							echo 'LS_FLAG="true"' >> "$config_file"
 						else
 							sed -i 's|^LS_FLAG=".*"|LS_FLAG="true"|' "$config_file"
 						fi
-						;;
-					--list-alias)
-						_list_alias
 						;;
 					--unset-ls)
 						if ! grep -q "LS_FLAG" "$config_file"; then
@@ -161,17 +175,33 @@ goin() {
 				while [[ $i -le ${#opts} ]]; do
 					flag="${opts[$i]}"
 					case "$flag" in
-						h) 
+						h)
 							_goin_help
+							_reset_temp_flag
 							return 0
 							;;
-						b) 
+						b)
 							cd "$back"
 							_check_ls_flag
 							_update_config_file "$back" "$current_dir"
+							_reset_temp_flag
 							return 0
 							;;
-						*) 
+						p)
+							if ! grep -q "CREATE_FLAG" "$config_file"; then
+								echo 'CREATE_FLAG="true"' >> "$config_file"
+							else
+								sed -i 's|^CREATE_FLAG=".*"|CREATE_FLAG="true"|' "$config_file"
+							fi
+							;;
+						a)
+							if ! grep -q "HIDDEN_FLAG" "$config_file"; then
+								echo 'HIDDEN_FLAG="true"' >> "$config_file"
+							else
+								sed -i 's|^HIDDEN_FLAG=".*"|HIDDEN_FLAG="true"|' "$config_file"
+							fi
+							;;
+						*)
 							echo "goin: $ERROR: Unknown flag or alias: '$flag'"
 							;;
 					esac
@@ -179,15 +209,16 @@ goin() {
 				done
 				;;
 			*)
-				_research "~" "$current_dir" "$1"
+				_research "~" "$current_dir" "$arg"
 				if [[ "$?" -eq "0" ]]; then
 					_check_ls_flag
 				fi
+				break
 				;;
 			esac
 	done
 
     local return_code="$?"
-
+	_reset_temp_flag
     return "$return_code"
 }
