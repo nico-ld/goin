@@ -37,18 +37,23 @@ _research() {
     
     # Multiple matches found
     echo "Multiple matches:"
+	echo "0 - Abort"
     local i
     for i in {1..${#paths[@]}}; do
         echo "$i - $paths[$i]"
     done
     
     local choice
+	echo
     read "choice?Please select one path: "
     
     if [[ "$choice" =~ ^[0-9]+$ && "$choice" -ge 1 && "$choice" -le ${#paths[@]} ]]; then
         cd "$paths[$choice]"
         _update_config_file "$paths[$choice]" "$current_dir"
         return 0
+	elif [[ "$choice" =~ ^[0-9]+$ && "$choice" -eq 0 ]]; then
+		echo "goin: $INFO: Aborting"
+		return 77
     else
         echo "goin: $ERROR: $choice is an invalid choice."
         return 1

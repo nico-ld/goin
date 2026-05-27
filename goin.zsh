@@ -212,6 +212,8 @@ goin() {
 				_research "~" "$current_dir" "$arg"
 				if [[ "$?" -eq "0" ]]; then
 					_check_ls_flag
+				elif [[ "$?" -eq "77" ]]; then
+					return 0
 				fi
 				break
 				;;
