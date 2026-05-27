@@ -48,7 +48,9 @@ _alias_management() {
         elif grep -q -- "$3" ~/.goin_config; then
             echo -e "goin: $ERROR: '$3': This alias already exist"
             return 11
-		elif _is_a_flag "$3"; then
+		fi
+		_is_a_flag "$3"
+		if [ $? -eq 1 ]; then
 			return 12
         fi
     
