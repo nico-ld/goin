@@ -86,14 +86,17 @@ _research() {
     fi
 
 	# Find directory
-	local paths=$(_find_path "$root" "$wanted_dir")
-	paths=(${(s: :)paths})
+	local paths
+	paths=$(_find_path "$root" "$wanted_dir")
 
 	# Error
-	if [ $? -eq 1 ]; then
+	if (( $? == 1)); then
 		return 1
+	fi
+
 	# Directory founded
-    elif [[ ${#paths[@]} -eq 1 ]]; then
+	paths=(${(s: :)paths})
+    if [[ ${#paths[@]} -eq 1 ]]; then
         cd "$paths[1]"
         _update_config_file "$paths[1]" "$current_dir"
         return 0
