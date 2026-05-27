@@ -15,6 +15,18 @@ _find_path() {
 	for seg in $segments; do
 		((count++))
 
+		if [[ "${seg:0:1}" == "." ]]; then
+			if ! grep -q 'HIDDEN_FLAG="true"' "$config_file"; then
+				echo -e "goin: $WARNING: hidden directory detected in your path" >&2
+				echo -e "goin: $INFO: hidden directory search enable" >&2
+				if ! grep -q "HIDDEN_FLAG" "$config_file"; then
+					echo 'HIDDEN_FLAG="true"' >> "$config_file"
+				else
+					sed -i 's|^HIDDEN_FLAG=".*"|HIDDEN_FLAG="true"|' "$config_file"
+				fi
+			fi
+		fi
+
 		# Absolute path case
 		if [[ "$seg" == "home" && "$count" == 1 ]]; then
 			echo "$wanted_dir"
