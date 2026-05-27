@@ -26,23 +26,38 @@ _list_alias() {
     done
 }
 
+_is_a_flag() {
+    case "$1" in
+        -h|-b|-p)
+            echo -e "goin: $ERROR: '$1' is an existing option"
+            return 1
+            ;;
+    esac
+    return 0
+}
+
 # 
-# _alias_management() -> Work with .goin_function, can add/remove/rename/list alias
+# _alias_management() -> add/remove/rename/list alias
 # 
 _alias_management() {
     if [[ "$1" == "update" ]]; then
-        # testing alias
-        if [[ ! -d "$4" ]]; then
-            echo -e "goin; $ERROR: No such directory named '$4'."
-            return 1
-        fi
-
         # testing alias name
-        if grep -q -- "$3" ~/.goin_config; then
+		if [[ ! "${3:0:1}" == "-" ]]; then
+			echo -e "goin: $ERROR: '$3': Alias must start with '-'"
+			return 10
+        elif grep -q -- "$3" ~/.goin_config; then
             echo -e "goin: $ERROR: '$3': This alias already exist"
             return 11
+		elif _is_a_flag "$3"; then
+			return 12
         fi
     
+        # testing alias
+        if [[ ! -d "$4" ]]; then
+            echo -e "goin: $ERROR: No such directory named '$4'"
+            return 127
+        fi
+
         local key="$3"
         local value="$4"
 

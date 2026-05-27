@@ -107,7 +107,7 @@ goin() {
 					--set-alias)
 						if [[ -z "$2" || -z "$3" ]]; then
 							echo "goin: $ERROR: missing arguments"
-							echo "Usage: goin --set-alias <name> <path/from/home>"
+							echo "Usage: goin --set-alias <name> <~/path/from/home>"
 							return 1
 						else
 							_alias_management "update" $@
@@ -143,7 +143,7 @@ goin() {
 						_update
 						;;
 					--version)
-						echo "goin: $INFO: Version \033[1m2.1.2\033[0m"
+						echo "goin: $INFO: Version \033[1m2.2.0\033[0m"
 						;;
 					--*) echo "goin: $ERROR: $arg: Unknow option" ;;
 				esac
