@@ -30,46 +30,23 @@ _update() {
 	return 0
 }
 
-# 
-# _has_new_commit() -> Check for a new update (async + cooldown)
-# 
-_has_new_commit_bg() {
-	local repo="$GOIN_DIR"
-    local cooldown=3600
+_has_new_commit() {
+    local repo="$GOIN_DIR"
 
-    if [[ ! -d ${~repo} ]]; then
-        return 1
+    [[ ! -d ${~repo} ]] && return 1
+
+    # Fetch synchronously (runs only at source time)
+    git -C ${~repo} fetch -q >/dev/null 2>&1 || return 1
+
+    local local_commit=$(git -C ${~repo} rev-parse HEAD 2>/dev/null)
+    local remote_commit=$(git -C ${~repo} rev-parse @{u} 2>/dev/null)
+
+    if [[ "$local_commit" != "$remote_commit" ]]; then
+        echo "goin: $INFO: An update is available, run : goin --update to install it"
+        sed -i 's|^UPDATE_AVAILABLE=".*"|UPDATE_AVAILABLE="true"|' "$HOME/.goin_config"
     fi
-
-    local last_fetch=$(grep '^LAST_FETCH=' "$HOME/.goin_config" | cut -d '=' -f2- | tr -d '"')
-    local now=$(date +%s)
-
-    if (( now - last_fetch < cooldown )); then
-        # Cooldown not yet over, we only read the flag
-        [[ "$(grep '^UPDATE_AVAILABLE=' "$HOME/.goin_config" | cut -d '=' -f2- | tr -d '"')" == "true" ]]
-        return $?
-    fi
-
-    # Fetch in background
-    (
-        git -C ${~repo} fetch -q >/dev/null 2>&1 || exit 1
-        sed -i "s|^LAST_FETCH=\".*\"|LAST_FETCH=\"$(date +%s)\"|" "$HOME/.goin_config"
-        local local_commit=$(git -C ${~repo} rev-parse HEAD 2>/dev/null)
-        local remote_commit=$(git -C ${~repo} rev-parse @{u} 2>/dev/null)
-        if [[ "$local_commit" != "$remote_commit" ]]; then
-            sed -i 's|^UPDATE_AVAILABLE=".*"|UPDATE_AVAILABLE="true"|' "$HOME/.goin_config"
-        else
-            sed -i 's|^UPDATE_AVAILABLE=".*"|UPDATE_AVAILABLE="false"|' "$HOME/.goin_config"
-        fi
-    ) &!
-
-    # This time, we read the flagfrom the previous fetch
-    [[ "$(grep '^UPDATE_AVAILABLE=' "$HOME/.goin_config" | cut -d '=' -f2- | tr -d '"')" == "true" ]]
 }
 
 if [[ -o login && -o interactive ]]; then
-    if _has_new_commit_bg; then
-        echo "goin: $INFO: An update is available, run : goin --update to install it"
-		sed -i 's|^UPDATE_AVAILABLE=".*"|UPDATE_AVAILABLE="true"|' "$HOME/.goin_config"
-    fi
+    _has_new_commit
 fi
