@@ -72,15 +72,17 @@ _reset_temp_flag() {
 	fi
 }
 
+_update_message(){
+	if grep -q 'UPDATE_AVAILABLE="true"' "$config_file"; then
+		echo "goin: $INFO: An update is available, run : goin --update to install it"
+	fi
+}
+
 #
 # goin() -> main function. Parse all flags and call good function
 #
 goin() {
     local config_file="$HOME/.goin_config"
-
-	if [[ grep -q 'UPDATE_AVAILABLE="true"' "$config_file" ]]; then
-		echo "goin: $INFO: An update is available, run : goin --update to install it"
-	fi
 
     if [[ ! -f "$config_file" ]]; then
         echo -e 'LAST_PATH="~"\nALIAS={}\nUPDATE_AVAILABLE="false"' > "$config_file"
@@ -110,6 +112,7 @@ goin() {
 				if [[ ! count -eq 1 ]]; then
 					echo "goin: $ERROR: ${arg#} have to be used alone"
 					_reset_temp_flag
+					_update_message
 					return 1
 				fi
 				case "$arg" in
@@ -159,6 +162,7 @@ goin() {
 						;;
 					--*) echo "goin: $ERROR: $arg: Unknow option" ;;
 				esac
+				_update_message
 				return "$?"
 				;;
 			-*)
@@ -168,6 +172,7 @@ goin() {
 				if (grep "ALIAS" "$config_file" | grep -q -- "\"$arg\":"); then
 					_alias_management "research" "$arg"
 					_check_ls_flag
+					_update_message
 					return 0
 				fi
 				while [[ $i -le ${#opts} ]]; do
@@ -176,6 +181,7 @@ goin() {
 						h)
 							_goin_help
 							_reset_temp_flag
+							_update_message
 							return 0
 							;;
 						b)
@@ -183,6 +189,7 @@ goin() {
 							_check_ls_flag
 							_update_config_file "$back"
 							_reset_temp_flag
+							_update_message
 							return 0
 							;;
 						p)
@@ -211,6 +218,7 @@ goin() {
 				if [[ "$?" -eq "0" ]]; then
 					_check_ls_flag
 				elif [[ "$?" -eq "77" ]]; then
+					_update_message
 					return 0
 				fi
 				break
@@ -219,6 +227,7 @@ goin() {
 	done
 
     local return_code="$?"
+	_update_message
 	_reset_temp_flag
     return "$return_code"
 }
