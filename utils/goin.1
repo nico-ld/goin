@@ -1,85 +1,173 @@
 .TH GOIN 1 "2026" "goin" "User Commands"
 
 .SH NAME
-goin \- access directories quickly from anywhere
+goin \- access any directory quickly from anywhere
 
 .SH SYNOPSIS
 .B goin
-[\fIOPTION\fR] <directory_name>
-
+[\fB\-ap\fR] \fI<directory_name>\fR
+.br
 .B goin
-<alias>
+[\fB\-ap\fR] \fI<path/to/dir>\fR
+.br
+.B goin
+[\fB\-ap\fR] \fI<alias>\fR
+.br
+.B goin
+\fI<option>\fR
 
 .SH DESCRIPTION
-\fBgoin\fR allows you to access directories quickly from anywhere in the terminal.
+.B goin
+is a zsh function that allows you to navigate to any directory from anywhere,
+without needing to type relative paths like
+.BR "cd ../../directory" .
+You provide a directory name, a relative path, or an absolute path, and
+.B goin
+will find and change to it.
 
-It also supports aliases to restrict navigation scope or speed up access
-to commonly used paths.
+It also supports user-defined aliases to restrict the navigation scope to a
+given path, or to jump quickly to frequently used directories.
 
-.SH OPTIONS
+.SH FLAGS
+Flags modify the behavior of the current execution.
+They may be combined (e.g.\&
+.BR \-ap ).
 
 .TP
-.BR -b ", " --back
-Work like
-.B cd -
+.B \-a
+Include hidden directories in the search.
+.br
+This flag is automatically enabled when the provided path contains hidden
+directories.
+
+.TP
+.B \-b
+Behave like
+.B cd \-
 but without printing the destination path.
 
 .TP
-.BR -h ", " --help
-Display information about this command.
+.B \-h
+Display a short help menu.
 
 .TP
-.B --set-ls
-Enable automatic execution of
-.B ls
-when entering the destination directory.
+.B \-p
+If the destination directory does not exist, create it.
+When a relative or absolute path is given, the directory is created at that
+location; otherwise it is created in the current working directory.
+
+.SH OPTIONS
+Options must be used alone; they configure the function or display information.
 
 .TP
-.B --unset-ls
-Disable the automatic
+.B \-\-help
+Display the full man page.
+
+.TP
+.B \-\-set\-ls
+Set a flag in the configuration file to automatically run
 .B ls
-execution flag.
+every time you arrive in a destination directory.
+
+.TP
+.B \-\-unset\-ls
+Remove the automatic
+.B ls
+flag from the configuration file.
+
+.TP
+.B \-\-update
+Fetch and install the latest version of
+.BR goin .
+
+.TP
+.B \-\-version
+Print the current installed version.
 
 .SH ALIAS MANAGEMENT
-
-.TP
-.BI --set-alias " <name> <path>"
-Create a new alias if it does not exist, or modify its path otherwise.
-
+Aliases let you define shortcuts that restrict the navigation scope to a given
+path.
 Alias names must begin with
-.B -
-to be recognized as flags.
+.B \-
+to be recognised as flags.
 
 .TP
-.BI --unset-alias " <name>"
-Delete an alias.
+.BI \-\-set\-alias " <name> <path>"
+Create a new alias, or update its path if it already exists.
 
 .TP
-.B --list-alias
-List all configured aliases.
+.BI \-\-unset\-alias " <name>"
+Delete an existing alias.
+
+.TP
+.B \-\-list\-alias
+List all configured aliases and their associated paths.
 
 .SH EXAMPLES
 
 .TP
-Go to a directory:
+Navigate to a directory by name:
 .B goin projects
 
 .TP
-Go back to previous directory:
-.B goin --back
+Navigate using a relative path:
+.B goin src/components
+
+.TP
+Include hidden directories in the search:
+.B goin \-a .config
+
+.TP
+Go to the previous directory (silently):
+.B goin \-b
+
+.TP
+Create a directory if it does not exist:
+.B goin \-p new_project
 
 .TP
 Create an alias:
-.B goin --set-alias -work ~/Documents/work
+.B goin \-\-set\-alias \-work ~/Documents/work
 
 .TP
 Use an alias:
-.B goin -work
+.B goin \-work
 
-.SH FILES
-Configuration files used by
+.TP
+Use an alias with the \-a flag:
+.B goin \-a \-work
+
+.TP
+List all aliases:
+.B goin \-\-list\-alias
+
+.TP
+Remove an alias:
+.B goin \-\-unset\-alias \-work
+
+.SH INSTALLATION
 .B goin
-depend on the installation setup.
+is available for
+.B zsh
+only.
+To install, clone the repository and source the function in your
+.IR .zshrc :
+
+.RS
+.nf
+source ~/GIT_REPO/goin.zsh
+.fi
+.RE
+
+Or run the following command to install automatically:
+
+.RS
+.nf
+git clone https://github.com/nico-ld/goin.git ~/.goin_function \\
+  && echo "source ~/.goin_function/goin.zsh" >> ~/.zshrc \\
+  && source ~/.zshrc
+.fi
+.RE
 
 .SH AUTHOR
 nico-ld
@@ -87,4 +175,4 @@ nico-ld
 .SH SEE ALSO
 .BR cd (1),
 .BR ls (1),
-.BR bash (1)
+.BR zsh (1)

@@ -113,10 +113,6 @@ goin() {
 					--help)
 						man -l "$GOIN_DIR/utils/goin.1"
 						;;
-					--back) 
-						cd "$back"
-						_update_config_file "$back"
-						;;
 					--set-alias)
 						if [[ -z "$2" || -z "$3" ]]; then
 							echo "goin: $ERROR: missing arguments"
