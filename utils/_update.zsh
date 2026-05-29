@@ -33,9 +33,11 @@ _update() {
 _has_new_commit() {
     local repo="$GOIN_DIR"
 
-    [[ ! -d ${~repo} ]] && return 1
+    if [[ ! -d ${~repo} ]]; then
+		echo "goin: $ERROR: couldn't find repository" >&2
+		return 1
+	fi
 
-    # Fetch synchronously (runs only at source time)
     git -C ${~repo} fetch -q >/dev/null 2>&1 || return 1
 
     local local_commit=$(git -C ${~repo} rev-parse HEAD 2>/dev/null)
@@ -46,7 +48,3 @@ _has_new_commit() {
         sed -i 's|^UPDATE_AVAILABLE=".*"|UPDATE_AVAILABLE="true"|' "$HOME/.goin_config"
     fi
 }
-
-if [[ -o login && -o interactive ]]; then
-    _has_new_commit
-fi

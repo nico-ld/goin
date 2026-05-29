@@ -1,4 +1,4 @@
-goin — V2.2.0
+goin — V2.2.1
 
 - Reworked alias parsing system
 - Added -a option to include hidden files

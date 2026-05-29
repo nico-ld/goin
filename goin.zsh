@@ -152,7 +152,7 @@ goin() {
 						_update
 						;;
 					--version)
-						echo "goin: $INFO: Version \033[1m2.2.0\033[0m"
+						echo "goin: $INFO: Version \033[1m2.2.1\033[0m"
 						;;
 					--*) echo "goin: $ERROR: $arg: Unknow option" ;;
 				esac
@@ -226,3 +226,7 @@ gion() {
 	goin $@
 	sleep 10
 }
+
+if [[ -o login && -o interactive ]]; then
+    _has_new_commit
+fi
