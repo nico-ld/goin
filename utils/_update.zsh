@@ -12,7 +12,7 @@ _update() {
 	elif grep -q 'UPDATE_AVAILABLE="true"' "$HOME/.goin_config"; then
 		if git -C "${0:A:h}" pull -q; then
 			source ~/.zshrc
-			if [ $? == 0]; then
+			if [ $? == 0 ]; then
 				echo "goin: $SUCCESS: successfully updated"
 				cat "${0:A:h}/patch_note.txt"
 				sed -i 's|^UPDATE_AVAILABLE=".*"|UPDATE_AVAILABLE="false"|' "$HOME/.goin_config"
@@ -44,7 +44,6 @@ _has_new_commit() {
     local remote_commit=$(git -C ${~repo} rev-parse @{u} 2>/dev/null)
 
     if [[ "$local_commit" != "$remote_commit" ]]; then
-		echo "goin: $INFO: An update is available, run : goin --update to install it"
         sed -i 's|^UPDATE_AVAILABLE=".*"|UPDATE_AVAILABLE="true"|' "$HOME/.goin_config"
     fi
 }
