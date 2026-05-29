@@ -36,7 +36,7 @@ _config_file_check() {
 	if ! grep -q "LAST_PATH" "$config_file"; then
 		echo 'LAST_PATH="~"' >> "$config_file"
 	fi
-	if ! grep -q "UPDATE_AVAILABLE" "$config_file" || ! grep -q "LAST_FETCH" "$config_file"; then
+	if ! grep -q "UPDATE_AVAILABLE" "$config_file"; then
 		echo "goin: $ERROR: Missing important parameter in configuration file"
 		echo "goin: $INFO: configuration file will be rewrite"
 		echo "goin: $INFO: your aliases have beed saved"
@@ -49,7 +49,6 @@ _config_file_check() {
 		fi
 
 		echo 'UPDATE_AVAILABLE="false"' >> "$config_file"
-        echo 'LAST_FETCH="0"' >> "$config_file"
         echo 'LS_FLAG="false"' >> "$config_file"		
 		_update "silent"
 	fi
@@ -79,8 +78,12 @@ _reset_temp_flag() {
 goin() {
     local config_file="$HOME/.goin_config"
 
+	if [[ grep -q 'UPDATE_AVAILABLE="true"' "$config_file" ]]; then
+		echo "goin: $INFO: An update is available, run : goin --update to install it"
+	fi
+
     if [[ ! -f "$config_file" ]]; then
-        echo -e 'LAST_PATH="~"\nALIAS={}\nUPDATE_AVAILABLE="false"\nLAST_FETCH="0"' > "$config_file"
+        echo -e 'LAST_PATH="~"\nALIAS={}\nUPDATE_AVAILABLE="false"' > "$config_file"
 		echo -e 'LS_FLAG="flag"\nCREATE_FLAG="false"\nHIDDEN_FLAG="false"' >> "$config_file"
 	fi
 

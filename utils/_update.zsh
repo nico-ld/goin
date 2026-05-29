@@ -44,7 +44,7 @@ _has_new_commit() {
     local remote_commit=$(git -C ${~repo} rev-parse @{u} 2>/dev/null)
 
     if [[ "$local_commit" != "$remote_commit" ]]; then
-        echo "goin: $INFO: An update is available, run : goin --update to install it"
+		echo "goin: $INFO: An update is available, run : goin --update to install it"
         sed -i 's|^UPDATE_AVAILABLE=".*"|UPDATE_AVAILABLE="true"|' "$HOME/.goin_config"
     fi
 }
