@@ -20,7 +20,6 @@ typeset -g GOIN_DIR="${${(%):-%x}:A:h}"
 # 
 _update_config_file() {
     sed -i "s|^LAST_PATH=\".*\"|LAST_PATH=\"$1\"|" "$config_file"
-    sed -i "s|^LAST_DIR=\".*\"|LAST_DIR=\"$2\"|" "$config_file"
 }
 
 #
@@ -116,7 +115,7 @@ goin() {
 						;;
 					--back) 
 						cd "$back"
-						_update_config_file "$back" "$current_dir"
+						_update_config_file "$back"
 						;;
 					--set-alias)
 						if [[ -z "$2" || -z "$3" ]]; then
@@ -183,7 +182,7 @@ goin() {
 						b)
 							cd "$back"
 							_check_ls_flag
-							_update_config_file "$back" "$current_dir"
+							_update_config_file "$back"
 							_reset_temp_flag
 							return 0
 							;;
@@ -223,4 +222,11 @@ goin() {
     local return_code="$?"
 	_reset_temp_flag
     return "$return_code"
+}
+
+gion() {
+	echo -e "gion: $ERROR: you type gion ! Get a 10sec sleep"
+	echo
+	goin $@
+	sleep 10
 }

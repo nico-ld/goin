@@ -1,8 +1,87 @@
 #!/bin/zsh
 
+_dedupe_path() {
+    local a="$1" b="$2"
+	local seg_a seg_b
+	local path="$a"
+
+	seg_a=(${(s:/:)a})
+	b=(${(s: :)b})
+	local len_seg_a=${#seg_a}
+
+	local count_b=1
+	for seg_b in $b; do
+		local founded="false"
+		local count=len_seg_a
+
+		while (( count >= 1 )); do
+			if [[ "$seg_a[$count]" == "$seg_b" ]]; then
+				founded="true"
+				break
+			fi
+			((count--))
+		done
+
+		if [[ "$founded" == "false" ]]; then
+			break
+		fi
+		((count_b++))
+	done
+
+	while (( count_b <= ${#b})); do
+		path="$path/$b[$count_b]"
+		((count_b++))
+	done
+
+	echo "$path"
+	return 1
+}
+
+_create_dir() {
+	local roots="$1"
+	local segments="$2"
+	local wanted_dir="$3"
+
+	roots=(${(s: :)roots})
+	segments=(${(s: :)segments})
+
+	if [[ ${#roots[@]} -eq 1 ]]; then
+		local dest_dir=$(_dedupe_path "$roots" "$segments")
+		echo "$dest_dir"
+		mkdir -p "$dest_dir"
+		return 0
+	fi
+
+	# Multiple matches found
+    echo "Multiple matches:" >&2
+	echo "0 - Abort" >&2
+    local i
+    for i in {1..${#roots[@]}}; do
+        echo "$i - $roots[$i]" >&2
+    done
+
+    local choice
+	echo >&2
+    read "choice?Please select one path: "
+    
+    if [[ "$choice" =~ ^[0-9]+$ && "$choice" -ge 1 && "$choice" -le ${#roots[@]} ]]; then
+		local dest_dir=$(_dedupe_path "$roots[$choice]" "$segments")
+        echo "$dest_dir"
+		mkdir -p "$dest_dir"
+        return 0
+	elif [[ "$choice" =~ ^[0-9]+$ && "$choice" -eq 0 ]]; then
+		echo "goin: $INFO: Aborting" >&2
+		return 77
+    else
+        echo "goin: $ERROR: $choice is an invalid choice." >&2
+        return 1
+    fi
+}
+
 _find_path() {
 	local root="$1"
-	local wanted_dir="$2"
+	local current_dir="$2"
+	local wanted_dir="$3"
 
 	# Split path
 	local segments=(${(s:/:)wanted_dir})
@@ -29,6 +108,9 @@ _find_path() {
 
 		# Absolute path case
 		if [[ "$seg" == "home" && "$count" == 1 ]]; then
+			if grep -q 'CREATE_FLAG="true"' "$config_file"; then
+				mkdir -p "$wanted_dir"
+			fi
 			echo "$wanted_dir"
 			return 0
 		fi
@@ -43,16 +125,24 @@ _find_path() {
 
 			# If no path founded
 			if [[ ${#paths[@]} -eq 0 ]]; then
+				if grep -q 'CREATE_FLAG="true"' "$config_file"; then
+					mkdir -p "$wanted_dir"
+					echo "$wanted_dir"
+					return 172
+				fi
 				echo -e "goin: $ERROR: No such directory named '$seg' in '$root'" >&2
-				return 1
+				if ! grep -q 'HIDDEN_FLAG="true"' "$config_file"; then 
+					echo -e "goin: $WARNING: The path to dir is maybe hidden, try again with -a" >&2
+				fi
+				return 127
 			fi
 			# Else
 			matches=(${(s: :)paths})
 
 		# For others iterations search in each directory corresponding
 		else
-			local roots="$matches"
-			local current_root
+			local roots=(${(s: :)matches})
+			local current_root >/dev/null
 			# Reset matches at every itereation to only get last one
 			unset matches
 
@@ -64,14 +154,21 @@ _find_path() {
 				fi
 				if [[ ${#paths[@]} -gt 0 ]]; then
 					matches+=(${(s: :)paths})
-					matches+="\n"
 				fi
 			done
 
 			# If no path founded
 			if [[ ${#matches[@]} -eq 0 ]]; then
-				echo -e "goin: $ERROR: No such directory named '$seg' in '$root'" >&2
-				return 1
+				if grep -q 'CREATE_FLAG="true"' "$config_file"; then
+					local path_return
+					path_return=$(_create_dir "$roots" "$segments" "$wanted_dir")
+					local exit_code=$?
+					echo "$path_return"
+					return $exit_code
+				else
+					echo -e "goin: $ERROR: No such directory named '$seg' in '$root'" >&2
+					return 127
+				fi
 			fi
 		fi		
 	done
@@ -99,11 +196,15 @@ _research() {
 
 	# Find directory
 	local paths
-	paths=$(_find_path "$root" "$wanted_dir")
+	paths=$(_find_path "$root" "$current_dir" "$wanted_dir")
+	local exit_code=$?
+
 
 	# Error
-	if (( $? == 1)); then
+	if (( $exit_code == 127 || $exit_code == 1)); then
 		return 1
+	elif (( $exit_code == 77)); then
+		return 77
 	fi
 
 	# Directory founded
