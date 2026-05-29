@@ -227,6 +227,9 @@ gion() {
 	sleep 10
 }
 
-if [[ -o login && -o interactive ]]; then
-    _has_new_commit
+(
+if [[ -o interactive ]]; then
+   	_has_new_commit
 fi
+) &!
+
