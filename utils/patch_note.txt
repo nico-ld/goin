@@ -1,6 +1,3 @@
-goin — V2.2.1
+goin — V2.2.2
 
-- Reworked alias parsing system
-- Added -a option to include hidden files
-- Added support for direct navigation using goin path/to/dir
-- Added -p option to automatically create the destination directory if it does not exist
+- Alias updating fixed
