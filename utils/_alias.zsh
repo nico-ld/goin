@@ -45,9 +45,6 @@ _alias_management() {
 		if [[ ! "${3:0:1}" == "-" ]]; then
 			echo -e "goin: $ERROR: '$3': Alias must start with '-'"
 			return 10
-        elif grep -q -- "$3" ~/.goin_config; then
-            echo -e "goin: $ERROR: '$3': This alias already exist"
-            return 11
 		fi
 		_is_a_flag "$3"
 		if [ $? -eq 1 ]; then
