@@ -14,7 +14,7 @@ _update() {
 			source ~/.zshrc
 			if (( $? == 0 )); then
 				echo "goin: $SUCCESS: successfully updated"
-				cat "$GOIN_DIR/patch_note.txt"
+				cat "$GOIN_DIR/utils/patch_note.txt"
 				sed -i 's|^UPDATE_AVAILABLE=".*"|UPDATE_AVAILABLE="false"|' "$HOME/.goin_config"
 			else
 				echo -e "$ERROR: A problem occurs whil trying to refresh ~/.zshrc"
