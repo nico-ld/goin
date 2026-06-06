@@ -10,11 +10,11 @@ _update() {
 		echo -e '\UPDATE_AVAILABLE="false"' >> "$HOME/.goin_config"
 		return 1
 	elif grep -q 'UPDATE_AVAILABLE="true"' "$HOME/.goin_config"; then
-		if git -C "${0:A:h}" pull -q; then
+		if git -C "$GOIN_DIR" pull -q; then
 			source ~/.zshrc
-			if [ $? == 0 ]; then
+			if (( $? == 0 )); then
 				echo "goin: $SUCCESS: successfully updated"
-				cat "${0:A:h}/patch_note.txt"
+				cat "$GOIN_DIR/patch_note.txt"
 				sed -i 's|^UPDATE_AVAILABLE=".*"|UPDATE_AVAILABLE="false"|' "$HOME/.goin_config"
 			else
 				echo -e "$ERROR: A problem occurs whil trying to refresh ~/.zshrc"
