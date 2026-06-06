@@ -1,3 +1,4 @@
-goin — V2.2.2
+goin — V2.2.3
 
 - Alias updating fixed
+- Repository emplacement in update function fixed
